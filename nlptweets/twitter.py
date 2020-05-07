@@ -1,6 +1,5 @@
 import json
 import os
-import csv
 
 import numpy as np
 import pandas as pd
@@ -21,8 +20,6 @@ except Exception as e:
 
 try:
     fpath = os.path.join(os.path.dirname(__file__), os.pardir, 'resources', 'liste_twittos_energie.csv')
-    # with open(fpath) as liste_twittos_energie:
-    #     list_twittos = csv.reader(liste_twittos_energie, delimiter=',')
     list_twittos = pd.read_csv(fpath, sep= ',')
 
 except Exception as e:
@@ -163,7 +160,3 @@ try:
 
 except Exception as e:
     raise RuntimeError('Could not write csv')
-
-
-
-# function to de duplicate tweets in order append new tweets to old tweets to grow the tweet dataframe 
