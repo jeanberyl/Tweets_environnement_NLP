@@ -1,10 +1,10 @@
 import json
 import os
 
+import tweepy
+
 import numpy as np
 import pandas as pd
-
-import tweepy
 
 try:
     fpath = os.path.join(os.path.dirname(__file__), os.pardir, 'resources', 'credentials.json')
@@ -40,11 +40,6 @@ TWITTER_API = tweepy.API(AUTH)
 
 
 # print(get_home_timeline())
-
-
-
-# api = tweepy.API(auth)
-
 
 
 def extract_tweet_attributes3(tweet_object):

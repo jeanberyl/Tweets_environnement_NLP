@@ -1,4 +1,12 @@
-# Helper function
+import os
+import re
+
+import pandas as pd
+import numpy as np
+import seaborn as sns
+
+
+# Visualisation function
 def plot_20_most_common_words(count_data, count_vectorizer):
     import matplotlib.pyplot as plt
     words = count_vectorizer.get_feature_names()
@@ -24,4 +32,4 @@ def plot_20_most_common_words(count_data, count_vectorizer):
 
 
 # Visualise the 20 most common words
-plot_20_most_common_words(count_data, count_vectorizer)
+# plot_20_most_common_words(count_data, count_vectorizer)
