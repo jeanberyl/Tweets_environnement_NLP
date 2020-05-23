@@ -33,7 +33,7 @@ def import_ressources():
 
     return tweepy.API(AUTH)
 
-
+# GLOBAL VARIABLE - BAD
 TWITTER_API = import_ressources()
 
 
@@ -53,9 +53,8 @@ def import_twittos():
     print(list_twittos)
     return list_twittos
 
-
+# GLOBAL VARIABLE - BAD
 twittos = import_twittos()
-
 
 def extract_tweet_attributes3(tweet_object):
     """ 
