@@ -21,14 +21,13 @@ import seaborn as sns
 # stopwords = set(stopwords.words('french'))
 
 
-
 try:
-    fpath = os.path.join(os.path.dirname(__file__), os.pardir, 'resources', 'dedup_table_april28.csv')
-    table = pd.read_csv(fpath,sep= ',', index_col=0)
+    fpath = os.path.join(os.path.dirname(__file__), os.pardir,
+                         'resources', 'dedup_table_april28.csv')
+    table = pd.read_csv(fpath, sep=',', index_col=0)
 
 except Exception as e:
     raise RuntimeError('Could not read csv')
-
 
 
 #### fetch variables from entities json ####
@@ -37,14 +36,17 @@ table['hashtags'] = np.nan
 
 
 def tryconvert(value, default):
-        try:
-            return ast.literal_eval(value)['urls'][0]['expanded_url']
-        except (IndexError):
-            return default
+    try:
+        return ast.literal_eval(value)['urls'][0]['expanded_url']
+    except (IndexError):
+        return default
 
-table['expanded_url'] = table["entities"].map(lambda x: tryconvert(x, "no_urls"))
 
-table['hashtags'] = table["entities"].map(lambda x: ast.literal_eval(x)['hashtags'])
+table['expanded_url'] = table["entities"].map(
+    lambda x: tryconvert(x, "no_urls"))
+
+table['hashtags'] = table["entities"].map(
+    lambda x: ast.literal_eval(x)['hashtags'])
 
 
 #### Text processing ####
@@ -55,7 +57,7 @@ def text_processing():
     table['text'] = table.apply(lambda row: row.text.replace('\n', ""), axis=1)
 
     # Remove punctuation
-    table['text'] = table['text'].map(lambda x: re.sub(r'\W+',' ', x ))
+    table['text'] = table['text'].map(lambda x: re.sub(r'\W+', ' ', x))
 
     # Convert the titles to lowercase
     table['text'] = table['text'].map(lambda x: x.lower())
@@ -74,26 +76,24 @@ print(table.info())
 # Fetch url to substring to string
 
 
-
 # # la regex est à améliorer
-# h = re.compile("(.*)https")                   
- 
+# h = re.compile("(.*)https")
+
 # T_F = []
 # for i in range(len(table)):
-    
+
 #     # check if string len is more than one character
-#     try: 
+#     try:
 #         if len(h.match(table.iloc[i].enlever_retour_chariot).group(1))>1:
 #             T_F.append(h.match(table.iloc[i].enlever_retour_chariot).group(1))
 #         else:
 #             h = re.compile(r"https:\S+(.*)")
 #             T_F.append(h.match(table.iloc[i].enlever_retour_chariot).group(1))
-            
-#     except: 
+
+#     except:
 #         T_F.append(table.iloc[0+i].enlever_retour_chariot)
 
 # table['text'] = T_F
-
 
 
 # h = re.compile(r"RT @[^\s]+(.*)")
@@ -101,19 +101,16 @@ print(table.info())
 # T_F = []
 # for i in range(len(table)):
 
-#     try: 
+#     try:
 #         T_F.append(h.match(table.iloc[i].enlever_https).group(1))
-        
+
 #     except:
 #         T_F.append(table.iloc[i].enlever_https)
 
 # table['text'] = T_F
 
 
-
-
 # nlp = spacy.load("fr_core_news_sm")
-
 
 
 # # remove stop words
