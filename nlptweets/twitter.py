@@ -1,5 +1,6 @@
 import json
 import os
+import pickle
 
 import tweepy
 
@@ -33,9 +34,6 @@ def import_ressources():
 
     return tweepy.API(AUTH)
 
-# GLOBAL VARIABLE - BAD
-TWITTER_API = import_ressources()
-
 
 def import_twittos():
     try:
@@ -53,8 +51,47 @@ def import_twittos():
     print(list_twittos)
     return list_twittos
 
-# GLOBAL VARIABLE - BAD
-twittos = import_twittos()
+
+def extract_twittos_max3600(twittos, TWITTER_API):
+    """
+        Function to extract tweets from twittos list
+        add dataframes in next line   
+    """
+
+    tweets_data_list = []
+
+    for i in range(len(twittos)):
+
+        ID = twittos["id_twitter"][i]
+
+        multiple_tweets = TWITTER_API.user_timeline(ID, count=200)
+        tweets_data_list.append(multiple_tweets)
+
+        while len(multiple_tweets) == 200:
+
+            last_tweet_id = multiple_tweets[199].id
+
+            multiple_tweets = TWITTER_API.user_timeline(
+                ID, count=200, max_id=last_tweet_id
+            )
+
+            tweets_data_list.append(multiple_tweets)
+
+    # with open("outfile", "wb") as fp:
+    #     pickle.dump(tweets_data_list, fp)
+
+    try:
+        fpath = os.path.join(
+            os.path.dirname(__file__), os.pardir, "resources", "tweets_data_list_pckl",
+        )
+        with open(fpath, "wb") as fp:
+            pickle.dump(tweets_data_list, fp)
+
+    except Exception:
+        raise RuntimeError("Could not pickle list")
+
+    return tweets_data_list
+
 
 def extract_tweet_attributes3(tweet_object):
     """ 
@@ -93,74 +130,3 @@ def extract_tweet_attributes3(tweet_object):
             columns=["tweet_id", "date", "full_text", "text", "user", "entities"],
         )
     return df
-
-
-def extract_twittos_max3600(twittos):
-    """
-        Function to extract tweets from twittos list
-        add dataframes in next line   
-    """
-
-    tweets_data_list = []
-
-    for i in range(len(twittos)):
-
-        ID = twittos["id_twitter"][i]
-
-        multiple_tweets = TWITTER_API.user_timeline(ID, count=200)
-        tweets_data_list.append(multiple_tweets)
-
-        while len(multiple_tweets) == 200:
-
-            last_tweet_id = multiple_tweets[199].id
-
-            multiple_tweets = TWITTER_API.user_timeline(
-                ID, count=200, max_id=last_tweet_id
-            )
-
-            tweets_data_list.append(multiple_tweets)
-
-    return tweets_data_list
-
-
-# use function
-# rename var
-data_list = extract_twittos_max3600(twittos)
-
-# check len
-print("len data_list", len(data_list))
-
-
-# rename var
-df_list = []
-
-# make one big df of the extracted tweets
-for i in range(len(data_list)):
-
-    df = extract_tweet_attributes3(data_list[i])
-    df_list.append(df)
-
-# check len
-print("len df_list", len(df_list))
-
-# check dims of the dataframe
-table = pd.concat(df_list)
-print("table shape", table.shape)
-
-print(table.head())
-
-
-##### write the file with current date #####
-
-
-try:
-    fpath = os.path.join(
-        os.path.dirname(__file__),
-        os.pardir,
-        "resources",
-        "table_max_{a}.csv".format(a=datetime.strftime(date.today(), "%B%d").lower()),
-    )
-    table.to_csv(fpath)
-
-except Exception:
-    raise RuntimeError("Could not write csv")
