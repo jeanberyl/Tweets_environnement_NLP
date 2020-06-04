@@ -4,7 +4,11 @@ import ast
 
 import pandas as pd
 import numpy as np
-import seaborn as sns
+
+from datetime import date, datetime
+
+pd.options.display.max_colwidth = 200
+
 # import spacy
 # # from spacy.lang.en.stop_words import STOP_WORDS
 # spacy.load('fr_core_news_sm')
@@ -22,58 +26,115 @@ import seaborn as sns
 
 
 try:
-    fpath = os.path.join(os.path.dirname(__file__), os.pardir,
-                         'resources', 'dedup_table_april28.csv')
-    table = pd.read_csv(fpath, sep=',', index_col=0)
+    fpath = os.path.join(
+        os.path.dirname(__file__), os.pardir, "resources", "dedup_table_april28.csv"
+    )
+    table = pd.read_csv(fpath, sep=",", index_col=0)
 
 except Exception as e:
-    raise RuntimeError('Could not read csv')
+    raise RuntimeError("Could not read csv")
 
 
 #### fetch variables from entities json ####
-table['expanded_url'] = np.nan
-table['hashtags'] = np.nan
+table["short_url"] = np.nan
+table["expanded_url"] = np.nan
+table["hashtags"] = np.nan
+table["symbols"] = np.nan
+table["user_mentions"] = np.nan
 
 
-def tryconvert(value, default):
+def tryconvert(value, url_type, default):
     try:
-        return ast.literal_eval(value)['urls'][0]['expanded_url']
+        return ast.literal_eval(value)["urls"][0][url_type]
     except (IndexError):
         return default
 
 
-table['expanded_url'] = table["entities"].map(
-    lambda x: tryconvert(x, "no_urls"))
+table["short_url"] = table["entities"].map(lambda x: tryconvert(x, "url", "no_urls"))
+table["expanded_url"] = table["entities"].map(
+    lambda x: tryconvert(x, "expanded_url", "no_urls")
+)
 
-table['hashtags'] = table["entities"].map(
-    lambda x: ast.literal_eval(x)['hashtags'])
+table["hashtags"] = table["entities"].map(lambda x: ast.literal_eval(x)["hashtags"])
+table["symbols"] = table["entities"].map(lambda x: ast.literal_eval(x)["symbols"])
+table["user_mentions"] = table["entities"].map(
+    lambda x: ast.literal_eval(x)["user_mentions"]
+)
 
+#  the table saved without text cleaning
+table_unclean = table
 
-#### Text processing ####
+table_urls = table[table["expanded_url"] != "no_urls"]
+table_unclean_urls = table_unclean[table_unclean["expanded_url"] != "no_urls"]
 
-def text_processing():
-
-    # remove end of line
-    table['text'] = table.apply(lambda row: row.text.replace('\n', ""), axis=1)
-
-    # Remove punctuation
-    table['text'] = table['text'].map(lambda x: re.sub(r'\W+', ' ', x))
-
-    # Convert the titles to lowercase
-    table['text'] = table['text'].map(lambda x: x.lower())
-    return table
-
-
-table = text_processing()
-
-
-print(table['text'].head(10))
-
-print(table.info())
+print("The shape of table url {a}".format(a=table_urls.shape))
 
 
 # Fetch user mentions to susbtract strings
 # Fetch url to substring to string
+
+table["text"] = table.apply(
+    lambda row: row["text"]
+    if row["expanded_url"] == "no_urls"
+    else row.text.replace(row.short_url, ""),
+    axis=1,
+)
+
+
+#### Text processing ####
+
+
+def text_cleaning():
+
+    # remove end of line
+    table["text"] = table.apply(lambda row: row.text.replace("\n", ""), axis=1)
+
+    # Remove punctuation
+    table["text"] = table["text"].map(lambda x: re.sub(r"\W+", " ", x))
+
+    # Convert the titles to lowercase
+    table["text"] = table["text"].map(lambda x: x.lower())
+    return table
+
+
+table = text_cleaning()
+
+# reste les accents "conférence"
+
+
+print("text before cleaning", table_unclean_urls["text"].head(10))
+
+print("text after cleaning", table["text"].head(10))
+
+print(table.info())
+
+try:
+    fpath = os.path.join(
+        os.path.dirname(__file__),
+        os.pardir,
+        "resources",
+        "table_urls_clean_top{a}.csv".format(
+            a=datetime.strftime(date.today(), "%B%d").lower()
+        ),
+    )
+    table_urls.to_csv(fpath)
+
+except Exception:
+    raise RuntimeError("Could not write csv")
+
+try:
+    fpath = os.path.join(
+        os.path.dirname(__file__),
+        os.pardir,
+        "resources",
+        "table_urls_unclean_top{a}.csv".format(
+            a=datetime.strftime(date.today(), "%B%d").lower()
+        ),
+    )
+    table_unclean_urls.to_csv(fpath)
+
+except Exception:
+    raise RuntimeError("Could not write csv")
 
 
 # # la regex est à améliorer

@@ -64,7 +64,9 @@ def extract_twittos_max3600(twittos, TWITTER_API):
 
         ID = twittos["id_twitter"][i]
 
-        multiple_tweets = TWITTER_API.user_timeline(ID, count=200)
+        multiple_tweets = TWITTER_API.user_timeline(
+            ID, count=200, tweet_mode="extended"
+        )
         tweets_data_list.append(multiple_tweets)
 
         while len(multiple_tweets) == 200:
@@ -72,7 +74,7 @@ def extract_twittos_max3600(twittos, TWITTER_API):
             last_tweet_id = multiple_tweets[199].id
 
             multiple_tweets = TWITTER_API.user_timeline(
-                ID, count=200, max_id=last_tweet_id
+                ID, count=200, max_id=last_tweet_id, tweet_mode="extended"
             )
 
             tweets_data_list.append(multiple_tweets)

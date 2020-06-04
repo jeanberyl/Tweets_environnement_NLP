@@ -1,5 +1,10 @@
 # import everything
-from twitter import import_ressources, import_twittos, extract_twittos_max3600
+from twitter import (
+    import_ressources,
+    import_twittos,
+    extract_twittos_max3600,
+    extract_tweet_attributes3,
+)
 
 import os
 
@@ -11,13 +16,13 @@ from datetime import date, datetime
 
 def main():
     # run your program using other defined python modules
-    TWITTER_API = twitter.import_ressources()
-    twittos = twitter.import_twittos()
+    TWITTER_API = import_ressources()
+    twittos = import_twittos()
 
     # use function
 
     # rename var
-    data_list = twitter.extract_twittos_max3600(twittos, TWITTER_API)
+    data_list = extract_twittos_max3600(twittos, TWITTER_API)
 
     # check len
     print("len data_list", len(data_list))
@@ -28,7 +33,7 @@ def main():
     # make one big df of the extracted tweets
     for i in range(len(data_list)):
 
-        df = twitter.extract_tweet_attributes3(data_list[i])
+        df = extract_tweet_attributes3(data_list[i])
         df_list.append(df)
 
     # check len
@@ -46,7 +51,7 @@ def main():
         fpath = os.path.join(
             os.path.dirname(__file__),
             os.pardir,
-            "resources",
+            "resources/extract",
             "table_max_{a}.csv".format(
                 a=datetime.strftime(date.today(), "%B%d").lower()
             ),
@@ -55,5 +60,10 @@ def main():
 
     except Exception:
         raise RuntimeError("Could not write csv")
+
     if __name__ == "__main__":
         main()
+
+
+def nothing():
+    pass
