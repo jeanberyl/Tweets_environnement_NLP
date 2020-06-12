@@ -61,8 +61,9 @@ def main():
     except Exception:
         raise RuntimeError("Could not write csv")
 
-    if __name__ == "__main__":
-        main()
+
+if __name__ == "__main__":
+    main()
 
 
 def nothing():

@@ -6,26 +6,57 @@ import pandas as pd
 import numpy as np
 import seaborn as sns
 
+from datetime import date, datetime
+
+
+from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
+
+
+try:
+    fpath = os.path.join(
+        os.path.dirname(__file__),
+        os.pardir,
+        "resources",
+        "table_urls_clean_topjune12.csv",
+    )
+    table = pd.read_csv(fpath, sep=",", index_col=0)
+
+except Exception as e:
+    raise RuntimeError("Could not read csv")
+
+
+print(table.columns)
+
+
 # ###### Vectorizing #######
 
+table["full_text_processed"] = table["full_text_processed"].values.astype("U")
 
-# # tokens uniques
+#  tokens uniques
 # vectorizer = CountVectorizer()
-# vectorizer.fit_transform(df_t.enlever_RT)
+# X = vectorizer.fit_transform(table["full_text_processed"])
 # print(vectorizer.get_feature_names())
 
 
-# vectorizer = TfidfVectorizer()
-# X = vectorizer.fit_transform(df_t.enlever_RT)
-# # print(vectorizer.get_feature_names())
-# print(X.shape)
+vectorizer = TfidfVectorizer()
+X = vectorizer.fit_transform(table["full_text_processed"])
+print(vectorizer.get_feature_names())
+print(X.shape)
 
-# # Initialise the count vectorizer with the English stop words
-# count_vectorizer = CountVectorizer()
+tfidf_df = pd.DataFrame(X)
 
+try:
+    fpath = os.path.join(
+        os.path.dirname(__file__),
+        os.pardir,
+        "resources",
+        "X{a}.csv".format(a=datetime.strftime(date.today(), "%B%d").lower()),
+    )
+    tfidf_df.to_csv(fpath)
 
-# # Fit and transform the processed titles
-# count_data = count_vectorizer.fit_transform(corpus['paper_text_processed'])
+except Exception:
+    raise RuntimeError("Could not write csv")
+
 
 # # #SUR LES LEMS
 # # #Ici le calcul des descripteurs est uniquement exploratoire, il s'agit de faire ressortir les associations de mots fréquentes afin de fusionner celles qui forment une expression sensée

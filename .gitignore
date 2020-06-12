@@ -1,6 +1,7 @@
 resources
 .vscode
 
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -137,3 +138,8 @@ dmypy.json
 
 # pytype static type analyzer
 .pytype/
+
+# other
+tests/test_sys.py
+Vérification text_processing.ipynb
+__init__.py

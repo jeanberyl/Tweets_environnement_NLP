@@ -110,10 +110,6 @@ def extract_tweet_attributes3(tweet_object):
             full_text = tweet.full_text
         except:
             full_text = np.nan
-        try:
-            text = tweet.text
-        except:
-            text = np.nan
         user = tweet.user.screen_name
         entities = tweet.entities
 
@@ -122,13 +118,11 @@ def extract_tweet_attributes3(tweet_object):
                 "tweet_id": tweet_id,
                 "date": created_at,
                 "full_text": full_text,
-                "text": text,
                 "user": user,
                 "entities": entities,
             }
         )
         df = pd.DataFrame(
-            tweet_list,
-            columns=["tweet_id", "date", "full_text", "text", "user", "entities"],
+            tweet_list, columns=["tweet_id", "date", "full_text", "user", "entities"],
         )
     return df
