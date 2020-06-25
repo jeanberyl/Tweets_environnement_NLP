@@ -54,35 +54,70 @@ table["user_mentions"] = np.nan
 # Removing RT to have feature
 
 
-def tryconvert(value, url_type, default):
+# def tryconvert(value, url_type, default):
+#     try:
+#         group = r": '(\S*)'"
+#         p = re.compile(url_type + group)
+#         return p.findall(str(ast.literal_eval(value)["urls"]))
+#     except (IndexError):
+#         return default
+
+
+# def extract_user_mentions(value, default):
+#     try:
+#         p = re.compile(r"'screen_name': '(\S*)'")
+#         return p.findall(str(ast.literal_eval(value)["user_mentions"]))
+#     except (IndexError):
+#         return default
+
+
+# table["short_url"] = table["entities"].map(lambda x: tryconvert(x, "'url'", "no_urls"))
+# table["expanded_url"] = table["entities"].map(
+#     lambda x: tryconvert(x, "'expanded_url'", "no_urls")
+# )
+
+
+def tryconvert(value, url_type):
+
+    group = r": '(\S*)'"
+    p = re.compile(url_type + group)
+    return p.findall(str(ast.literal_eval(value)["urls"]))
+
+
+def tryconvert_media(value, url_type, default):
     try:
         group = r": '(\S*)'"
         p = re.compile(url_type + group)
-        return p.findall(str(ast.literal_eval(value)["urls"]))
-    except (IndexError):
+        return p.findall(str(ast.literal_eval(value)["media"]))
+    except (KeyError):
         return default
 
 
-def extract_user_mentions(value, default):
-    try:
-        p = re.compile(r"'screen_name': '(\S*)'")
-        return p.findall(str(ast.literal_eval(value)["user_mentions"]))
-    except (IndexError):
-        return default
+def extract_user_mentions(value):
+
+    p = re.compile(r"'screen_name': '(\S*)'")
+    return p.findall(str(ast.literal_eval(value)["user_mentions"]))
 
 
-table["short_url"] = table["entities"].map(lambda x: tryconvert(x, "'url'", "no_urls"))
-table["expanded_url"] = table["entities"].map(
-    lambda x: tryconvert(x, "'expanded_url'", "no_urls")
+table["short_url"] = table["entities"].map(lambda x: tryconvert(x, "'url'"))
+
+
+# table["expanded_url"] = table["entities"].map(
+#     lambda x: tryconvert(x, "'expanded_url'", "no_urls")
+# )
+
+table["media_url"] = table["entities"].map(
+    lambda x: tryconvert_media(x, "'url'", "no_media")
 )
+#  the default "no_urls is never used", instead it's empty list
+# print(len(table[table["expanded_url"] == "no_urls"]))
+
 table["hashtags"] = table["entities"].map(lambda x: ast.literal_eval(x)["hashtags"])
 #  table["symbols"] = table["entities"].map(lambda x: ast.literal_eval(x)["symbols"])
 # table["user_mentions"] = table["entities"].map(
 #     lambda x: ast.literal_eval(x)["user_mentions"]
 # )
-table["user_mentions"] = table["entities"].map(
-    lambda x: extract_user_mentions(x, "no_user_mentions")
-)
+table["user_mentions"] = table["entities"].map(lambda x: extract_user_mentions(x))
 
 #  the table saved without full_text cleaning
 table_unclean = table
@@ -98,17 +133,17 @@ def loop_erase_urls(chain, short_url):
     return chain
 
 
-def loop_erase_user_mentions(chain, user_mentions):
-    for i in range(len(user_mentions)):
-        chain = chain.replace(user_mentions[i], "")
-    return chain
+# def loop_erase_user_mentions(chain, user_mentions):
+#     for i in range(len(user_mentions)):
+#         chain = chain.replace(user_mentions[i], "")
+#     return chain
 
 
 def full_text_cleaning():
 
     # remove end of line
     table["full_text"] = table.apply(
-        lambda row: row.full_text.replace("\n", ""), axis=1
+        lambda row: row.full_text.replace("\n", " "), axis=1
     )
 
     # Fetch user mentions to susbtract strings
@@ -127,12 +162,12 @@ def full_text_cleaning():
         axis=1,
     )
 
-    table["full_text"] = table.apply(
-        lambda row: row["full_text"]
-        if row["user_mentions"] == 2
-        else loop_erase_user_mentions(row["full_text"], row["user_mentions"]),
-        axis=1,
-    )
+    # table["full_text"] = table.apply(
+    #     lambda row: row["full_text"]
+    #     if row["user_mentions"] == 2
+    #     else loop_erase_user_mentions(row["full_text"], row["user_mentions"]),
+    #     axis=1,
+    # )
 
     # Remove punctuation
     table["full_text"] = table["full_text"].map(lambda x: re.sub(r"\W+", " ", x))
@@ -145,6 +180,8 @@ def full_text_cleaning():
 table = full_text_cleaning()
 
 # reste les accents "conférence"
+# lemmatisation
+# n-grams
 
 # remove stop words
 nlp = spacy.load("fr_core_news_sm")
@@ -159,6 +196,7 @@ print("full_text after cleaning", table["full_text"].head(10))
 
 print(table.info())
 
+#  il n'y a pas de lignes avec "no_urls"
 table_urls = table[table["expanded_url"] != "no_urls"]
 
 print("The shape of table url {a}".format(a=table_urls.shape))
