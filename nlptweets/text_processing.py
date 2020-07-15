@@ -11,7 +11,6 @@ from datetime import date, datetime
 
 pd.options.display.max_colwidth = 280
 
-import spacy
 
 # from spacy.lang.en.stop_words import STOP_WORDS
 
@@ -33,7 +32,7 @@ try:
         os.path.dirname(__file__),
         os.pardir,
         "resources/extract",
-        "table_max_june04.csv",
+        "table_max_july12.csv",
     )
     table = pd.read_csv(fpath, sep=",", index_col=0)
 
@@ -43,7 +42,7 @@ except Exception as e:
 
 #### fetch variables from entities json ####
 table["short_url"] = np.nan
-table["expanded_url"] = np.nan
+# table["expanded_url"] = np.nan
 table["number_urls"] = table["entities"].map(lambda x: x.count("'url'"))
 table["hashtags"] = np.nan
 # table["symbols"] = np.nan
@@ -76,12 +75,20 @@ table["user_mentions"] = np.nan
 #     lambda x: tryconvert(x, "'expanded_url'", "no_urls")
 # )
 
+# def tryconvert(value, url_type):
 
-def tryconvert(value, url_type):
+#     group = r": '(\S*)'"
+#     p = re.compile(url_type + group)
+#     return p.findall(str(ast.literal_eval(value)["urls"]))
 
-    group = r": '(\S*)'"
-    p = re.compile(url_type + group)
-    return p.findall(str(ast.literal_eval(value)["urls"]))
+def tryconvert(value, url_type, default):
+    try:
+        group = r": '(\S*)'"
+        p = re.compile(url_type + group)
+        return p.findall(str(ast.literal_eval(value)["urls"]))
+    except (KeyError):
+        return default
+
 
 
 def tryconvert_media(value, url_type, default):
@@ -99,8 +106,8 @@ def extract_user_mentions(value):
     return p.findall(str(ast.literal_eval(value)["user_mentions"]))
 
 
-table["short_url"] = table["entities"].map(lambda x: tryconvert(x, "'url'"))
-
+# table["short_url"] = table["entities"].map(lambda x: tryconvert(x, "'url'"))
+table["short_url"] = table["entities"].map(lambda x: tryconvert(x, "'url'", "no_urls"))
 
 # table["expanded_url"] = table["entities"].map(
 #     lambda x: tryconvert(x, "'expanded_url'", "no_urls")
@@ -110,7 +117,7 @@ table["media_url"] = table["entities"].map(
     lambda x: tryconvert_media(x, "'url'", "no_media")
 )
 #  the default "no_urls is never used", instead it's empty list
-# print(len(table[table["expanded_url"] == "no_urls"]))
+# (len(table[table["expanded_url"] == "no_urls"]))
 
 table["hashtags"] = table["entities"].map(lambda x: ast.literal_eval(x)["hashtags"])
 #  table["symbols"] = table["entities"].map(lambda x: ast.literal_eval(x)["symbols"])
@@ -143,18 +150,18 @@ def full_text_cleaning():
 
     # remove end of line
     table["full_text"] = table.apply(
-        lambda row: row.full_text.replace("\n", " "), axis=1
+        lambda row: row["full_text"].replace("\n", " "), axis=1
     )
 
     # Fetch user mentions to susbtract strings
     # Fetch url to substring to string
 
-    # table["full_text"] = table.apply(
-    #     lambda row: row["full_text"]
-    #     if row["expanded_url"] == "no_urls"
-    #     else row.full_text.replace(row.short_url, ""),
-    #     axis=1,
-    # )
+    table["full_text"] = table.apply(
+        lambda row: row["full_text"].replace(row.media_url, "")
+        if len(table["media_url"]) != 8
+        else row["full_text"],
+        axis=1,
+    )
     table["full_text"] = table.apply(
         lambda row: row["full_text"]
         if row["expanded_url"] == "no_urls"

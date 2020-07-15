@@ -1,5 +1,7 @@
 # from Tweets_environnement_NLP.nlptweets import twitter
 # python -m pytest tests/
+# export PYTHONPATH="${PYTHONPATH}:/path/to/your/module/"
+
 
 from nlptweets.twitter import (
     import_ressources,

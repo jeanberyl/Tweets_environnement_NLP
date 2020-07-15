@@ -1,7 +1,7 @@
 # from Tweets_environnement_NLP.nlptweets import twitter
 # python -m pytest tests/
 
-from nlptweets.text_processing import tryconvert, text_cleaning
+from nlptweets.text_processing import tryconvert
 
 import os
 import pickle
