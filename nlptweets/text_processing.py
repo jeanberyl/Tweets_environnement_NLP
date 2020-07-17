@@ -12,27 +12,12 @@ from datetime import date, datetime
 pd.options.display.max_colwidth = 280
 
 
-# from spacy.lang.en.stop_words import STOP_WORDS
-
-
-# from nltk.stem.snowball import FrenchStemmer
-# from nltk.corpus import stopwords
-# from nltk.tokenize import word_tokenize
-# from nltk.collocations import *
-
-# import nltk
-
-# nltk.download("stopwords")
-# nltk.download("punkt")
-# stopwords = set(stopwords.words("french"))
-
-
 try:
     fpath = os.path.join(
         os.path.dirname(__file__),
         os.pardir,
         "resources/extract",
-        "table_max_july12.csv",
+        "table_max_july15.csv",
     )
     table = pd.read_csv(fpath, sep=",", index_col=0)
 
@@ -81,6 +66,7 @@ table["user_mentions"] = np.nan
 #     p = re.compile(url_type + group)
 #     return p.findall(str(ast.literal_eval(value)["urls"]))
 
+
 def tryconvert(value, url_type, default):
     try:
         group = r": '(\S*)'"
@@ -88,7 +74,6 @@ def tryconvert(value, url_type, default):
         return p.findall(str(ast.literal_eval(value)["urls"]))
     except (KeyError):
         return default
-
 
 
 def tryconvert_media(value, url_type, default):
@@ -130,7 +115,7 @@ table["user_mentions"] = table["entities"].map(lambda x: extract_user_mentions(x
 table_unclean = table
 
 
-table_unclean_urls = table_unclean[table_unclean["expanded_url"] != "no_urls"]
+# table_unclean_urls = table_unclean[table_unclean["expanded_url"] != "no_urls"]
 
 
 #### full_text processing ####
@@ -157,14 +142,14 @@ def full_text_cleaning():
     # Fetch url to substring to string
 
     table["full_text"] = table.apply(
-        lambda row: row["full_text"].replace(row.media_url, "")
-        if len(table["media_url"]) != 8
+        lambda row: row["full_text"].replace(row["media_url"][0], "")
+        if row["media_url"] != "no_media"
         else row["full_text"],
         axis=1,
     )
     table["full_text"] = table.apply(
         lambda row: row["full_text"]
-        if row["expanded_url"] == "no_urls"
+        if row["short_url"] == []
         else loop_erase_urls(row["full_text"], row["short_url"]),
         axis=1,
     )
@@ -179,6 +164,10 @@ def full_text_cleaning():
     # Remove punctuation
     table["full_text"] = table["full_text"].map(lambda x: re.sub(r"\W+", " ", x))
 
+    # df_t["word_clean1"] = df_t.apply(
+    #     lambda row: list([w.lower() for w in row.lemme_rm_Stop_words if w.isalpha()]),
+    #     axis=1,
+    # )
     # Convert the titles to lowercase
     table["full_text"] = table["full_text"].map(lambda x: x.lower())
     return table
@@ -197,45 +186,45 @@ table["full_text_processed"] = table["full_text"].map(
 )
 
 
-print("full_text before cleaning", table_unclean_urls["full_text"].head(10))
+# print("full_text before cleaning", table_unclean_urls["full_text"].head(10))
 
-print("full_text after cleaning", table["full_text"].head(10))
+print("full_text after cleaning", table["full_text"].head())
 
 print(table.info())
 
 #  il n'y a pas de lignes avec "no_urls"
-table_urls = table[table["expanded_url"] != "no_urls"]
+#  table_urls = table[table["expanded_url"] != "no_urls"]
 
-print("The shape of table url {a}".format(a=table_urls.shape))
+# print("The shape of table url {a}".format(a=table_urls.shape))
 
-
-try:
-    fpath = os.path.join(
-        os.path.dirname(__file__),
-        os.pardir,
-        "resources",
-        "table_urls_clean_top{a}.csv".format(
-            a=datetime.strftime(date.today(), "%B%d").lower()
-        ),
-    )
-    table_urls.to_csv(fpath)
-
-except Exception:
-    raise RuntimeError("Could not write csv")
 
 try:
     fpath = os.path.join(
         os.path.dirname(__file__),
         os.pardir,
         "resources",
-        "table_urls_unclean_top{a}.csv".format(
+        "table_clean_top{a}.csv".format(
             a=datetime.strftime(date.today(), "%B%d").lower()
         ),
     )
-    table_unclean_urls.to_csv(fpath)
+    table.to_csv(fpath)
 
 except Exception:
     raise RuntimeError("Could not write csv")
+
+# try:
+#     fpath = os.path.join(
+#         os.path.dirname(__file__),
+#         os.pardir,
+#         "resources",
+#         "table_urls_unclean_top{a}.csv".format(
+#             a=datetime.strftime(date.today(), "%B%d").lower()
+#         ),
+#     )
+#     table_unclean_urls.to_csv(fpath)
+
+# except Exception:
+#     raise RuntimeError("Could not write csv")
 
 
 # nlp = spacy.load("en_core_web_sm")

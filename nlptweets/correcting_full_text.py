@@ -9,8 +9,8 @@ import seaborn as sns
 from datetime import date, datetime
 
 
-# df = pd.read_csv("resources/table_urls_clean_topjune12.csv")
-# df = df[df["full_text"].isna() == False]
+df = pd.read_csv("resources/table_clean_topjuly16.csv")
+df = df[df["full_text"].isna() == False]
 
 # for i in range(len(df["full_text"])):
 #     try:
@@ -20,12 +20,12 @@ from datetime import date, datetime
 #         pass
 
 
-# for i in range(len(df["full_text"])):
-#     try:
-#         if "stratégiqueswashington" in df["full_text"].iloc[i]:
-#             print(df["full_text"].iloc[i], i)
-#     except:
-#         pass
+for i in range(len(df["full_text"])):
+    try:
+        if "qu" in df["full_text"].iloc[i]:
+            print(df["full_text"].iloc[i], i)
+    except:
+        pass
 
 
 # for i in range(len(df["full_text"])):
