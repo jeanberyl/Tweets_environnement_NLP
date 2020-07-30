@@ -131,6 +131,11 @@ def loop_erase_urls(chain, short_url):
 #     return chain
 
 
+words_to_remove = [
+    "rt",
+]
+
+
 def full_text_cleaning():
 
     # remove end of line
