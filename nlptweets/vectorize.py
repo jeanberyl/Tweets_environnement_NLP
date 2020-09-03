@@ -1,14 +1,42 @@
+import ast
 import os
 import re
-import ast
+import time
+
 
 import spacy
 
 import pandas as pd
 import numpy as np
-import seaborn as sns
+
 
 from datetime import date, datetime
+
+
+from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
+import numpy as np
+
+from pandas.io.json import json_normalize
+from nltk.tokenize import TweetTokenizer
+from pprint import pprint
+
+# Gensim
+import gensim
+import gensim.corpora as corpora
+from gensim.utils import simple_preprocess
+from gensim.models import CoherenceModel
+
+# spacy pour lemmatization
+import spacy
+
+# Importer la liste de stopword NLTK
+import nltk; nltk.download('stopwords'); nltk.download("words")
+from nltk.corpus import wordnet
+from nltk.corpus import stopwords
+stop_words = stopwords.words('english')
+# Ajouter certains stopwords en fonction du corpus de données si nécessaire
+stop_words.extend(['rt',])
+
 
 
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
@@ -18,7 +46,12 @@ import warnings
 
 warnings.simplefilter("ignore", DeprecationWarning)
 
+# df = pd.read_csv("resources/table_clean_topjuly16.csv", index_col = 0)
 
+# df.head()
+# df = pd.read_csv("../resources/table_clean_topjuly16.csv", index_col = 0)
+
+# df.head()
 try:
     fpath = os.path.join(
         os.path.dirname(__file__), os.pardir, "resources", "table_clean_topjuly16.csv",
@@ -37,50 +70,17 @@ print(table.columns)
 table["full_text_processed"] = table["full_text_processed"].values.astype("U")
 
 
-count_vectorizer = CountVectorizer()  # Fit and transform the processed titles
-count_data = count_vectorizer.fit_transform(table["full_text_processed"])
 
-# Helper function
-def print_topics(model, count_vectorizer, n_top_words):
-    words = count_vectorizer.get_feature_names()
-    for topic_idx, topic in enumerate(model.components_):
-        print("\nTopic #%d:" % topic_idx)
-        print(" ".join([words[i] for i in topic.argsort()[: -n_top_words - 1 : -1]]))
-
-
+count_vectorizer = CountVectorizer(ngram_range=(1, 2))# Fit and transform the processed titles
+count_data = count_vectorizer.fit_transform(table["full_text_processed"])# Visualise the 10 most common words
+ 
+        
 # Tweak the two parameters below
 number_topics = 15
-number_words = 200  # Create and fit the LDA model
+number_words = 200# Create and fit the LDA model
 lda = LDA(n_components=number_topics, n_jobs=-1)
-lda.fit(count_data)  # Print the topics found by the LDA model
-print("Topics found via LDA:")
-print_topics(lda, count_vectorizer, number_words)
+lda.fit(count_data)# Print the topics found by the LDA model
 
-
-#  tokens uniques
-# vectorizer = CountVectorizer()
-# X = vectorizer.fit_transform(table["full_text_processed"])
-# print(vectorizer.get_feature_names())
-
-
-# vectorizer = TfidfVectorizer()
-# X = vectorizer.fit_transform(table["full_text_processed"])
-# print(vectorizer.get_feature_names())
-# print(X.shape)
-
-# tfidf_df = pd.DataFrame(X)
-
-# try:
-#     fpath = os.path.join(
-#         os.path.dirname(__file__),
-#         os.pardir,
-#         "resources",
-#         "X{a}.csv".format(a=datetime.strftime(date.today(), "%B%d").lower()),
-#     )
-#     tfidf_df.to_csv(fpath)
-
-# except Exception:
-#     raise RuntimeError("Could not write csv")
 
 
 # # #SUR LES LEMS
